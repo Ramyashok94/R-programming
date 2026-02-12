@@ -1,0 +1,304 @@
+---
+title: "Exploratory_data_Analysis_week4"
+author: "Ramya Ashok Kumar"
+date: "2026-02-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+library(ggplot2)
+ggplot(data = diamonds)+
+  geom_bar(mapping=aes(x=cut))
+
+```
+
+
+```{r}
+library(tidyverse)
+diamonds %>% count(cut)
+```
+```{r}
+ggplot(data = diamonds)+
+  geom_histogram(mapping=aes(x=carat),binwidth = 0.5)
+```
+
+
+```{r}
+diamonds %>% count(cut_width(carat, 0.5))
+```
+
+
+```{r}
+smaller <- diamonds %>% filter(carat<3)
+
+ggplot(data = smaller, mapping = aes(x=carat))+
+  geom_histogram(binwidth = 0.5)
+```
+
+## Multiple histogram in same plot using geom_freqpoly()
+```{r}
+ggplot(data =  diamonds, mapping=aes(x= carat , color= cut))+
+  geom_freqpoly(binwidth = 0.25)
+```
+##Grouping of data
+```{r}
+ggplot(data=diamonds, mapping=aes(x=carat))+
+  geom_histogram(binwidth = 0.01)
+```
+#where y= windth of the diamonds in mm
+```{r}
+ggplot(data=diamonds, mapping = aes(x=y))+
+  geom_histogram(binwidth = 0.01)
+
+```
+## coor_cartesian is to zoom into the variables, it has xlim as well
+In the below chart you can find values from 0 to 30 and also 60
+
+```{r}
+ggplot(data=diamonds, mapping = aes(x=y))+
+  geom_histogram(binwidth = 0.5)+
+  coord_cartesian(ylim = c(0,50))
+
+```
+## to visualize the unusual data
+where y is the width, diamonds cant have 0 width and also no diamond will 31.8 in width. So we can see the unusual values entered in the datasets.
+```{r}
+(unusual <- diamonds %>% 
+  filter(y < 3 | y > 20) %>%
+  select(price,x,y,z) %>%
+  arrange(y))
+```
+
+##exercise
+
+1.Explore the distribution of each of the x, y, and z variables in diamonds. What do you learn? Think about a diamond and how you might decide which dimension is the length, width, and depth.
+```{r}
+head(diamonds)
+```
+#summary of the diamond to find the mean, median and outliers
+```{r}
+summary(diamonds)
+```
+## Since y and z have max value highter than the mean , i like to check the values that are unusual in Y and z
+
+```{r}
+(y_max =sum(diamonds$y> 20))
+
+```
+So, there are two y values that are higher than 20
+
+
+
+
+```{r}
+(z_max = sum(diamonds$z>20))
+```
+There's only one value highter than 20 in z.
+
+Therefore, Since the dataset is huge and outlier counts are minimum and not bigger difference in value, this will not affect the mean value much.
+
+**Now lets investigate on x values and its distributions in a graph:**
+```{r}
+ggplot(data=diamonds, mapping =aes(x=x))+
+  geom_histogram(binwidth = 0.5, fill = "green")+
+  ggtitle("length in mm")
+
+```
+**Now lets investigate on y values and its distributions in a graph:**
+```{r}
+ggplot(data=diamonds, mapping =aes(x=y))+
+  geom_histogram(binwidth = 0.5,fill  = "orange")+
+  ggtitle("width in mm")
+```
+```{r}
+ggplot(data=diamonds, mapping =aes(x=z))+
+  geom_histogram(binwidth = 0.5,fill  = "Red")+
+   ggtitle("depth in mm")
+```
+## To remove outliers
+
+```{r}
+remove_outliers <- diamonds %>% filter(x>0&y>0&z>0, x<20&y<20&z<20)
+remove_outliers
+```
+
+**Findings from the distribution of x, y and z of the diamonds:**
+from the observation the length and width that x and y are approximately similar whereas the depth is depend on x and y of the diamond.
+
+
+##2. Explore the distribution of price. Do you discover anything unusual or surprising? (Hint: Carefully think about the binwidth and make sure you try a wide range of values.)
+
+```{r}
+summary(diamonds)
+```
+In the summary list, the max value of diamond is 18,823 but there is no big change in mean, so we have to find the number of outlier's in price. Mostly these count will be less, sinc ethe mean shows slightly higher than median
+
+```{r}
+ggplot(data = diamonds, mapping = aes(x=price))+
+  geom_histogram(binwidth = 1000)
+```
+## diamond price outliers , since the median is 2406 , i am looking for outliers way higher than that
+```{r}
+summary(diamonds)
+sum(diamonds$price < 4000)
+```
+Since the outlier count is high, i need to verify the x, y and z of diamonds
+
+```{r}
+highest_price <- diamonds %>% filter(price>5000) %>% select(price,x,y,z) %>% arrange(price)
+View(highest_price)
+```
+In a total of 53,940 records, there 14000+ records have price more than 5000. if you seethe summary the upper quartile which is 75 % of the record count shows 5324, so 15% of the records are outliers. So it doesnt affect much in the mean.
+
+```{r}
+price_table = diamonds %>% select(price,x,y,z) %>% arrange(price)
+```
+
+
+```{r}
+View(price_table)
+```
+```{r}
+ggplot(data = price_table, aes(x= x, y= y, size= z, color=price ))+
+         geom_point(alpha=0.8)+
+  ggtitle("Distribution based on x, y and its price")+
+  coord_cartesian(xlim = c(0,11) , ylim = c(0,11))
+```
+from the above chart, we can clearly view that the price of the diamond depends on the x, y values, they are interlinked. We can also see some of the diamond price decreased in price are bigger size, these might be data errors, we can clean the data using the condition x>0 and x<20 similarly for y and z.
+
+
+### 3. How many diamonds are 0.99 carat? How many are 1 carat? What do you think is the cause of the difference?
+
+```{r}
+```
+
+
+```{r}
+diamonds %>% filter(carat == 0.99) %>% count(carat)
+```
+
+
+```{r}
+diamonds %>% filter(carat %in% c(0.99,1)) %>% count(carat)
+```
+# the one carat diamonds are more than 0.99 carat. lets investigate based on the x, y and z
+
+```{r}
+carat_com = diamonds%>% filter(carat %in% c(0.99,1)) %>% select(carat,price,cut) %>% arrange(carat)
+```
+
+```{r}
+View(carat_com)
+```
+
+```{r}
+ggplot(data = carat_com, mapping = aes(x=x, y= y, color = carat %in% c(0.99,1)))+
+  geom_point(alpha = 0.9)+
+  ggtitle("Distribution of diamonds based on carat")+
+  coord_cartesian(xlim = c(5.7,6.7), ylim = c(5.7,6.7))
+```
+visualizing only carats frequency using histogram
+
+
+```{r}
+ggplot(data= diamonds, mapping = aes(x=carat,color = cut))+
+  geom_freqpoly(binwidth = 0.01)+
+  coord_cartesian(xlim = c(0.99,1))
+```
+```{r}
+ggplot(data = carat_com, mapping = aes(x=carat, y = price, color=cut))+
+  geom_point(alpha = 0.9) +
+  coord_cartesian(ylim = c(3000,11000))
+```
+Seems like whole cut is selling more than 0.99 because of the market requires 1 carat whole diamond rather than missing a fraction of its weight. the 1 carat are common weighted diamond. Cause is real world market requirement
+
+
+
+##example of NA in bar chart, if we include NA as a category in barchart otherwise it will exclude NA value by default
+```{r}
+
+
+df1 <- data.frame(category = c("A", "B", NA, "A", "C", NA))
+
+# Default bar chart
+ggplot(data = df1, aes(x = category)) +
+  geom_bar()
+```
+
+```{r}
+df1$category <- addNA(df1$category)
+
+ggplot(data=df1, aes(x = category)) +
+  geom_bar()
+```
+```{r}
+is.na(x)
+```
+```{r}
+nycflights13::flights %>% 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot(mapping = aes(sched_dep_time)) + 
+    geom_freqpoly(mapping = aes(colour = cancelled), binwidth = 1/4)
+```
+
+```{r}
+nycflights13::flights%>%
+  mutate(
+    cancelled = is.na(dep_time),
+     sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot(mapping=aes(x=sched_dep_time, color= cancelled))+
+  geom_boxplot()
+```
+
+```{r}
+diamonds %>% 
+  count(color, cut) %>% 
+  group_by(color) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ggplot(aes(x = color, y = cut, fill = prop)) +
+  geom_tile()
+```
+
+
+```{r}
+diamonds %>% 
+  count(color, cut) %>% 
+  group_by(cut) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ggplot(aes(x = color, y = cut, fill = prop)) +
+  geom_tile()
+```
+
